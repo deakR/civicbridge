@@ -4,6 +4,10 @@ import { streamSSE } from 'hono/streaming';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
+// Automatically spin up Bun-native municipal upstreams (Zero Python required!)
+import './upstream/resident-service.ts';
+import './upstream/benefits-service.ts';
+
 import { ResidentClient } from './adapters/residents/client.ts';
 import { BenefitsClient } from './adapters/benefits/client.ts';
 import { CircuitBreaker } from './adapters/benefits/circuit-breaker.ts';
@@ -12,6 +16,7 @@ import { Catalogue } from './adapters/benefits/catalogue.ts';
 import { matchResidentToCatalogue } from './domain/identity.ts';
 import { computeVulnerability, detectBenefitGaps, buildHouseholdClusters } from './domain/analytics.ts';
 import { generateProvenanceHash } from './domain/provenance.ts';
+import { runDirtyDataBenchmark } from './domain/benchmark.ts';
 import { MunicipalAIAdvisor } from './ai/advisor.ts';
 import { GroqClient } from './ai/client.ts';
 import type { AutoUnifiedResponse, UnifiedResponse, SourceStatus } from './domain/models.ts';
@@ -117,7 +122,6 @@ app.get('/residents', async (c) => {
 
 // 4. Single Benefit Record Lookup
 app.get('/benefits/*', async (c) => {
-  // Extract remainder of path after /benefits/
   const fullPath = c.req.path;
   const ref = decodeURIComponent(fullPath.replace(/^\/benefits\//, ''));
 
@@ -332,7 +336,13 @@ app.get('/analytics/households', async (c) => {
   return c.json(Array.from(clusters.values()));
 });
 
-// 9. AI Dossier Endpoint (Direct JSON or SSE stream)
+// 9. Dirty Data Benchmark & Success Rate
+app.get('/api/benchmark', (c) => {
+  const report = runDirtyDataBenchmark();
+  return c.json(report);
+});
+
+// 10. AI Dossier Endpoints
 app.post('/api/ai/dossier', async (c) => {
   const body: AutoUnifiedResponse = await c.req.json();
   const briefing = await aiAdvisor.generateDossier(body);
@@ -345,7 +355,6 @@ app.get('/api/ai/dossier/stream', async (c) => {
     return c.text('resident_id required', 400);
   }
 
-  // Auto-unify resident first
   const { resident } = await residentClient.getResident(id);
   if (!resident) {
     return c.text('resident not found', 404);
@@ -371,7 +380,7 @@ app.get('/api/ai/dossier/stream', async (c) => {
   });
 });
 
-// 10. AI Ambiguity Investigator
+// 11. AI Ambiguity Investigator
 app.post('/api/ai/investigate', async (c) => {
   const body = await c.req.json();
   const { resident, candidates } = body;
@@ -382,7 +391,7 @@ app.post('/api/ai/investigate', async (c) => {
   return c.json({ explanation });
 });
 
-// 11. Circuit Breaker Admin Controls
+// 12. Circuit Breaker Admin Controls
 app.get('/api/circuit', (c) => {
   return c.json({
     state: breaker.stateString(),
@@ -401,7 +410,7 @@ app.post('/api/circuit/reset', (c) => {
   return c.json({ state: breaker.stateString(), message: 'Circuit manually reset to CLOSED' });
 });
 
-// 12. Frontend Static Assets
+// 13. Frontend Static Assets
 const webDir = join(import.meta.dir, 'web');
 
 app.get('/', (c) => {
@@ -409,7 +418,7 @@ app.get('/', (c) => {
   if (existsSync(htmlPath)) {
     return c.html(readFileSync(htmlPath, 'utf-8'));
   }
-  return c.text('CivicBridge API running. Frontend building...');
+  return c.text('CivicBridge API running.');
 });
 
 app.get('/styles.css', (c) => {
@@ -424,7 +433,6 @@ app.get('/styles.css', (c) => {
 app.get('/app.js', async (c) => {
   const tsPath = join(webDir, 'app.ts');
   if (existsSync(tsPath)) {
-    // Bun transpiles TypeScript on the fly!
     const build = await Bun.build({
       entrypoints: [tsPath],
       minify: false,
@@ -444,5 +452,5 @@ export default {
 };
 
 if (import.meta.main) {
-  console.log(`CivicBridge Municipal Integration Server running on http://127.0.0.1:${port}`);
+  console.log(`CivicBridge Unified System running on http://127.0.0.1:${port}`);
 }

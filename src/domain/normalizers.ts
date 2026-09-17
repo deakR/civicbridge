@@ -11,11 +11,15 @@ export function normalizeTown(s: string): string {
 }
 
 const STREET_SUFFIXES: [string, string][] = [
+  ['boulevard', 'blvd'],
   ['avenue', 'ave'],
   ['street', 'st'],
   ['road', 'rd'],
   ['drive', 'dr'],
   ['lane', 'ln'],
+  ['court', 'ct'],
+  ['place', 'pl'],
+  ['apartment', 'apt'],
 ];
 
 export function normalizeStreet(s: string): string {
@@ -44,8 +48,13 @@ export function parseLegacyName(name: string): { last: string; first: string } {
 
 export function soundex(s: string): string {
   if (!s) return '';
-  const clean = s.toUpperCase().replace(/[^A-Z]/g, '');
+  let clean = s.toUpperCase().replace(/[^A-Z]/g, '');
   if (clean.length === 0) return '';
+
+  // Canonicalize leading phonetic variants (K/C, PH/F, WR/R)
+  clean = clean.replace(/^K(?=[AEOUY])/i, 'C');
+  clean = clean.replace(/^PH/i, 'F');
+  clean = clean.replace(/^WR/i, 'R');
 
   const mapping: Record<string, string> = {
     B: '1', F: '1', P: '1', V: '1',

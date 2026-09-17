@@ -30,7 +30,7 @@
   <nav class="tab-nav">
     <button class="tab-btn active" data-tab="tab-unified">👤 Auto-Unified Resident</button>
     <button class="tab-btn" data-tab="tab-fanout">⚡ Concurrent Fan-Out</button>
-    <button class="tab-btn" data-tab="tab-analytics">📊 Municipal Analytics</button>
+    <button class="tab-btn" data-tab="tab-analytics">📊 Municipal Analytics & Benchmarks</button>
     <button class="tab-btn" data-tab="tab-catalogue">📑 Deduplicated Catalogue</button>
   </nav>
 
@@ -63,9 +63,7 @@
               <h3>Resident Index Record</h3>
               <span class="badge" id="res-source-status">ok</span>
             </div>
-            <div class="card-body" id="resident-details">
-              <!-- populated dynamically -->
-            </div>
+            <div class="card-body" id="resident-details"></div>
           </div>
 
           <!-- Benefit Record Card -->
@@ -74,9 +72,7 @@
               <h3>Benefits Register Record</h3>
               <span class="badge" id="ben-source-status">ok</span>
             </div>
-            <div class="card-body" id="benefit-details">
-              <!-- populated dynamically -->
-            </div>
+            <div class="card-body" id="benefit-details"></div>
           </div>
         </div>
 
@@ -86,9 +82,7 @@
             <h3>Deterministic 4-Tier Identity Evidence Ladder</h3>
             <span class="badge badge-success" id="identity-outcome-badge">MATCHED</span>
           </div>
-          <div class="card-body" id="evidence-ladder-body">
-            <!-- populated dynamically -->
-          </div>
+          <div class="card-body" id="evidence-ladder-body"></div>
         </div>
 
         <!-- MUNICIPAL VULNERABILITY & BENEFIT GAPS -->
@@ -117,9 +111,7 @@
             <div class="card-header">
               <h3>Identified Benefit Entitlement Gaps</h3>
             </div>
-            <div class="card-body" id="benefit-gaps-body">
-              <!-- populated dynamically -->
-            </div>
+            <div class="card-body" id="benefit-gaps-body"></div>
           </div>
         </div>
 
@@ -179,7 +171,7 @@
       </div>
     </section>
 
-    <!-- TAB 3: MUNICIPAL ANALYTICS -->
+    <!-- TAB 3: MUNICIPAL ANALYTICS & BENCHMARKS -->
     <section id="tab-analytics" class="tab-pane">
       <div class="metrics-grid" id="analytics-metrics-grid">
         <div class="metric-card">
@@ -211,6 +203,61 @@
           <h4>Household Clusters</h4>
           <div class="metric-val" id="metric-households">-</div>
           <small>Discovered Dwellings</small>
+        </div>
+      </div>
+
+      <!-- REAL-WORLD DIRTY DATA BENCHMARK -->
+      <div class="card" style="border-color: rgba(56, 189, 248, 0.4); margin-bottom: 1.4rem;">
+        <div class="card-header">
+          <div>
+            <h3>Real-World Dirty Municipal Data Kit Benchmark</h3>
+            <p class="section-desc" style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.2rem;">
+              Tests real-world dirty data edge cases (phonetic alias drift, street abbreviation shifts, unit number anomalies, twin/sibling disambiguation guardrails).
+            </p>
+          </div>
+          <button class="btn btn-sm btn-primary" id="btn-run-benchmark">Run Live Benchmark</button>
+        </div>
+        <div class="card-body">
+          <div class="metrics-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 1rem;">
+            <div class="metric-card">
+              <h4>Success Rate</h4>
+              <div class="metric-val" id="bm-success-rate" style="color: var(--accent-success);">-</div>
+              <small>Dirty Cases Resolved</small>
+            </div>
+            <div class="metric-card">
+              <h4>Precision</h4>
+              <div class="metric-val" id="bm-precision" style="color: var(--accent-primary);">-</div>
+              <small>0 Wrong Merges</small>
+            </div>
+            <div class="metric-card">
+              <h4>Wrong Merges</h4>
+              <div class="metric-val" id="bm-wrong-merges" style="color: var(--accent-danger);">-</div>
+              <small>False Linkage Count</small>
+            </div>
+            <div class="metric-card">
+              <h4>Cases Evaluated</h4>
+              <div class="metric-val" id="bm-total-cases">-</div>
+              <small>Dirty Test Kit</small>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="benchmark-table">
+              <thead>
+                <tr>
+                  <th>Case ID</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Expected</th>
+                  <th>Resolved</th>
+                  <th>Rule Used</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="benchmark-tbody">
+                <tr><td colspan="7">Click "Run Live Benchmark" to execute the stress-test.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 

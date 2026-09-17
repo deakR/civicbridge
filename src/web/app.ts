@@ -28,7 +28,10 @@ function initTabs() {
       const targetId = btn.getAttribute('data-tab');
       if (targetId) {
         document.getElementById(targetId)?.classList.add('active');
-        if (targetId === 'tab-analytics') loadAnalytics();
+        if (targetId === 'tab-analytics') {
+          loadAnalytics();
+          runBenchmark();
+        }
       }
     });
   });
@@ -324,9 +327,10 @@ function initFanoutSearch() {
   });
 }
 
-// 6. Analytics Tab
+// 6. Analytics & Benchmark Tab
 function initAnalytics() {
   document.getElementById('btn-refresh-analytics')?.addEventListener('click', loadAnalytics);
+  document.getElementById('btn-run-benchmark')?.addEventListener('click', runBenchmark);
 }
 
 async function loadAnalytics() {
@@ -369,6 +373,50 @@ async function loadAnalytics() {
     }
   } catch (err) {
     console.error('Analytics load error', err);
+  }
+}
+
+async function runBenchmark() {
+  const tbody = document.getElementById('benchmark-tbody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="7">Evaluating dirty data anomalies...</td></tr>';
+
+  try {
+    const res = await fetch('/api/benchmark');
+    const data = await res.json();
+
+    const setVal = (id: string, v: any) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = v;
+    };
+
+    setVal('bm-success-rate', `${data.dirty_success_rate_pct}%`);
+    setVal('bm-precision', `${data.precision_pct}%`);
+    setVal('bm-wrong-merges', data.wrong_merges_count);
+    setVal('bm-total-cases', data.total_dirty_cases);
+
+    if (tbody) {
+      tbody.innerHTML = data.edge_case_breakdown
+        .map(
+          (c: any) => `
+        <tr>
+          <td><code>${c.case_id}</code></td>
+          <td><strong>${c.category}</strong></td>
+          <td style="font-size: 0.82rem;">${c.description}</td>
+          <td><code>${c.expected}</code></td>
+          <td><code>${c.actual}</code></td>
+          <td><small>${c.rule_used || 'none'}</small></td>
+          <td>
+            <span class="badge ${c.passed ? 'badge-success' : 'badge-danger'}">
+              ${c.passed ? 'PASSED' : 'FAILED'}
+            </span>
+          </td>
+        </tr>
+      `
+        )
+        .join('');
+    }
+  } catch (err: any) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7">Error running benchmark: ${err.message}</td></tr>`;
   }
 }
 
