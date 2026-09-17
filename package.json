@@ -7,12 +7,13 @@
   "scripts": {
     "start": "bun run src/server.ts",
     "dev": "bun --watch src/server.ts",
-    "test": "bun test",
+    "test": "bun test tests/",
     "services:rest": "python services/rest_service.py --port 8081",
     "services:xml": "python services/xml_service.py --port 8082 --failure-rate 0.40"
   },
   "dependencies": {
-    "fast-xml-parser": "^4.5.3"
+    "fast-xml-parser": "^4.5.3",
+    "hono": "^4.13.8"
   },
   "devDependencies": {
     "@types/bun": "latest"
