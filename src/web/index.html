@@ -1,0 +1,283 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivicBridge — Resilient Municipal Integration Service</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-icon">🏛️</div>
+      <div>
+        <h1 class="app-title">CivicBridge</h1>
+        <p class="app-subtitle">Resilient Municipal Integration Service & AI Copilot</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-badge" id="system-status">
+        <span class="status-dot"></span> System: <strong id="sys-status-val">Checking...</strong>
+      </div>
+      <div class="status-badge" id="circuit-status">
+        Circuit: <strong id="circuit-status-val">Closed</strong>
+      </div>
+      <button class="btn btn-sm btn-secondary" id="btn-circuit-trip" title="Simulate upstream failure by tripping circuit">Trip Breaker</button>
+      <button class="btn btn-sm btn-secondary" id="btn-circuit-reset" title="Reset circuit to closed">Reset Breaker</button>
+    </div>
+  </header>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="tab-unified">👤 Auto-Unified Resident</button>
+    <button class="tab-btn" data-tab="tab-fanout">⚡ Concurrent Fan-Out</button>
+    <button class="tab-btn" data-tab="tab-analytics">📊 Municipal Analytics</button>
+    <button class="tab-btn" data-tab="tab-catalogue">📑 Deduplicated Catalogue</button>
+  </nav>
+
+  <main class="app-content">
+    <!-- TAB 1: AUTO-UNIFIED RESIDENT -->
+    <section id="tab-unified" class="tab-pane active">
+      <div class="card search-card">
+        <div class="search-row">
+          <label for="input-resident-id" class="search-label">Resident ID:</label>
+          <div class="search-input-group">
+            <input type="text" id="input-resident-id" placeholder="e.g. R-10001, R-10002..." value="R-10001">
+            <button class="btn btn-primary" id="btn-search-resident">Unify & Analyze</button>
+          </div>
+        </div>
+        <div class="chip-row">
+          <span class="chip-label">Quick Samples:</span>
+          <button class="chip" data-id="R-10001">R-10001 (Ashley Vance)</button>
+          <button class="chip" data-id="R-10002">R-10002 (David Kim)</button>
+          <button class="chip" data-id="R-10003">R-10003 (Sarah Connor)</button>
+          <button class="chip" data-id="R-10004">R-10004 (Marcus Bell)</button>
+        </div>
+      </div>
+
+      <div id="unified-results" class="results-layout hidden">
+        <!-- TOP SUMMARY GRID -->
+        <div class="entity-grid">
+          <!-- Resident Card -->
+          <div class="card entity-card">
+            <div class="card-header">
+              <h3>Resident Index Record</h3>
+              <span class="badge" id="res-source-status">ok</span>
+            </div>
+            <div class="card-body" id="resident-details">
+              <!-- populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Benefit Record Card -->
+          <div class="card entity-card">
+            <div class="card-header">
+              <h3>Benefits Register Record</h3>
+              <span class="badge" id="ben-source-status">ok</span>
+            </div>
+            <div class="card-body" id="benefit-details">
+              <!-- populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- IDENTITY EVIDENCE LADDER -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Deterministic 4-Tier Identity Evidence Ladder</h3>
+            <span class="badge badge-success" id="identity-outcome-badge">MATCHED</span>
+          </div>
+          <div class="card-body" id="evidence-ladder-body">
+            <!-- populated dynamically -->
+          </div>
+        </div>
+
+        <!-- MUNICIPAL VULNERABILITY & BENEFIT GAPS -->
+        <div class="analytics-row">
+          <div class="card vuln-card">
+            <div class="card-header">
+              <h3>Social Vulnerability Profile</h3>
+              <span class="badge" id="vuln-tier-badge">MODERATE</span>
+            </div>
+            <div class="card-body">
+              <div class="score-display">
+                <div class="score-circle" id="vuln-score-circle">
+                  <span id="vuln-score-val">0</span>
+                  <small>/100</small>
+                </div>
+                <div class="score-info">
+                  <h4>Vulnerability Index</h4>
+                  <p id="vuln-summary-text">Evaluating risk factors...</p>
+                </div>
+              </div>
+              <ul class="factor-list" id="vuln-factors-list"></ul>
+            </div>
+          </div>
+
+          <div class="card gaps-card">
+            <div class="card-header">
+              <h3>Identified Benefit Entitlement Gaps</h3>
+            </div>
+            <div class="card-body" id="benefit-gaps-body">
+              <!-- populated dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- AI CASEWORKER COPILOT -->
+        <div class="card ai-card">
+          <div class="card-header">
+            <div class="ai-header-title">
+              <span class="ai-sparkle">✨</span>
+              <h3>Groq Municipal AI Copilot (Caseworker Briefing)</h3>
+            </div>
+            <button class="btn btn-sm btn-primary" id="btn-generate-ai">Regenerate Briefing</button>
+          </div>
+          <div class="card-body">
+            <div id="ai-loading" class="ai-loader hidden">
+              <span class="spinner"></span> Streaming caseworker dossier from Groq LLaMA 3.1...
+            </div>
+            <div id="ai-briefing-content" class="markdown-body">
+              Click <strong>"Unify & Analyze"</strong> to generate real-time caseworker intelligence.
+            </div>
+          </div>
+        </div>
+
+        <!-- AUDIT PROVENANCE LEDGER -->
+        <div class="card provenance-card">
+          <div class="card-header">
+            <h3>Compliance & Cryptographic Audit Provenance</h3>
+          </div>
+          <div class="card-body">
+            <p>Every resolved resident record carries a deterministic SHA-256 integrity hash tracking inputs, matched references, and timestamp lineages for GDPR and audit compliance:</p>
+            <div class="code-box" id="provenance-hash-box">Waiting for resolution...</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: CONCURRENT FAN-OUT -->
+    <section id="tab-fanout" class="tab-pane">
+      <div class="card">
+        <h3>Concurrent Upstream Fan-Out Console</h3>
+        <p class="section-desc">Queries both the REST Resident Index and XML Benefits Register in parallel, returning partial data and diagnostics during upstream outages.</p>
+        <div class="fanout-inputs">
+          <div class="form-group">
+            <label>Resident ID:</label>
+            <input type="text" id="fanout-resident-id" value="R-10001">
+          </div>
+          <div class="form-group">
+            <label>Benefit Reference:</label>
+            <input type="text" id="fanout-benefit-ref" value="CA/2016/4001">
+          </div>
+          <button class="btn btn-primary" id="btn-fanout-submit">Fan-Out Query</button>
+        </div>
+
+        <div id="fanout-results" class="hidden">
+          <div class="meta-banner" id="fanout-meta-banner"></div>
+          <pre class="json-viewer" id="fanout-json"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: MUNICIPAL ANALYTICS -->
+    <section id="tab-analytics" class="tab-pane">
+      <div class="metrics-grid" id="analytics-metrics-grid">
+        <div class="metric-card">
+          <h4>Total Residents</h4>
+          <div class="metric-val" id="metric-residents">-</div>
+          <small>Calder Resident Index</small>
+        </div>
+        <div class="metric-card">
+          <h4>Benefit Records</h4>
+          <div class="metric-val" id="metric-benefits">-</div>
+          <small>Benefits Register</small>
+        </div>
+        <div class="metric-card">
+          <h4>Match Rate</h4>
+          <div class="metric-val" id="metric-match-rate">-</div>
+          <small>Deterministic Overlap</small>
+        </div>
+        <div class="metric-card">
+          <h4>High Vulnerability</h4>
+          <div class="metric-val" id="metric-critical">-</div>
+          <small>SVI Score &ge; 75</small>
+        </div>
+        <div class="metric-card">
+          <h4>Identified Gaps</h4>
+          <div class="metric-val" id="metric-gaps">-</div>
+          <small>Unclaimed Entitlements</small>
+        </div>
+        <div class="metric-card">
+          <h4>Household Clusters</h4>
+          <div class="metric-val" id="metric-households">-</div>
+          <small>Discovered Dwellings</small>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>Household Dwelling Clusters</h3>
+          <button class="btn btn-sm btn-secondary" id="btn-refresh-analytics">Refresh Analytics</button>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="data-table" id="households-table">
+              <thead>
+                <tr>
+                  <th>Dwelling Address</th>
+                  <th>Town</th>
+                  <th>Occupant Count</th>
+                  <th>Occupant IDs</th>
+                </tr>
+              </thead>
+              <tbody id="households-tbody">
+                <tr><td colspan="4">Loading household graph...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: DEDUPLICATED CATALOGUE -->
+    <section id="tab-catalogue" class="tab-pane">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h3>Deduplicated Resident Catalogue</h3>
+            <p class="section-desc">Dynamic pagination engine resolves boundary slips, deduplicates stable IDs, and verifies total catalogue integrity.</p>
+          </div>
+          <button class="btn btn-sm btn-primary" id="btn-load-catalogue">Load All Residents</button>
+        </div>
+        <div class="pagination-receipt" id="pagination-receipt-box">
+          Click <strong>"Load All Residents"</strong> to stream the paginated index.
+        </div>
+        <div class="table-container">
+          <table class="data-table" id="catalogue-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>DOB</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>Program Status</th>
+                <th>Last Contact</th>
+              </tr>
+            </thead>
+            <tbody id="catalogue-tbody">
+              <tr><td colspan="7">No records loaded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>CivicBridge v1.0.0 &bull; Powered by Bun 1.4 + TypeScript + Hono &bull; Groq LLaMA 3.1 Copilot</span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
